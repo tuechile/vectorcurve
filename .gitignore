@@ -16,4 +16,3 @@ outputs/*
 *.svg
 !template.svg
 template.json
-scan.png

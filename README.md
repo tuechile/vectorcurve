@@ -3,7 +3,7 @@
 Turn a page of your handwriting into an installable font — plus, as a
 byproduct, a tool for morphing one person's handwriting into another's.
 ![Before](scan.png)
-![After](outputs/glyph_preview.png)
+![After](glyph_preview.png)
 
 This builds directly from my earlier research project,
 [AM111_Final](https://github.com/tuechile/AM111_Final), which compared
