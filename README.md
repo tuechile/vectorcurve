@@ -1,9 +1,9 @@
 # vectorcurve
 
-Turn a page of your own handwriting into an installable font — plus, as a
+Turn a page of your handwriting into an installable font — plus, as a
 byproduct, a tool for morphing one person's handwriting into another's.
 
-This builds directly on findings from an earlier research project,
+This builds directly from my earlier research project,
 [AM111_Final](https://github.com/tuechile/AM111_Final): a small neural
 network trained per-glyph on a curve's arc-length parameterization can
 represent handwriting strokes — including self-intersecting loops — more
@@ -14,14 +14,8 @@ K-control-point mechanism: instead of fitting every raw pixel, a small
 learned basis picks out the K points that matter most for the curve's
 shape.
 
-`vectorcurve` reuses that exact mechanism, but points it at a real
-deliverable: a compact, trained representation of each letter you write,
-exported as actual font glyph outlines.
 
-## Why a neural curve fit instead of a normal vectorizer
-
-Generic raster-to-vector tools (potrace, Adobe Image Trace, Vector Magic)
-already turn scanned handwriting into vector curves. They're not the
+Generic raster-to-vector tools (potrace, Adobe Image Trace, Vector Magic) already turn scanned handwriting into vector curves. They're not the
 point here. What they don't do well is handle **cursive self-intersections**
 gracefully — a plain polyline trace or a spline fit to a noisy skeleton
 tends to draw a straight "shortcut" segment across a loop instead of
@@ -45,7 +39,7 @@ scan/photo of handwriting
         └─(pipeline/morph.py, byproduct)──▶ weight-interpolated in-between curves ──▶ .gif
 ```
 
-## Usage
+## Use
 
 ```bash
 pip install -r requirements.txt
@@ -68,22 +62,3 @@ python scripts/04_export_font.py --models-dir models --out fonts/MyHandwriting.t
 python scripts/05_make_morph.py --model-a models/a.pt --model-b models/a_friend.pt \
     --out outputs/morph_a.gif
 ```
-
-## v1 limitations / next steps
-
-- **Scan alignment**: cropping assumes a flatbed-scanner-quality scan aligned
-  to the printed template. A phone photo needs perspective correction first
-  (not implemented).
-- **Polygonal outlines**: glyph contours come from a Shapely stroke buffer
-  and are many short line segments, not fitted cubic/quadratic Beziers.
-  They render fine but aren't as compact as a proper Bezier fit would be —
-  a natural follow-up.
-- **No live UI yet**: this is a local script pipeline by design for v1. A
-  small web front end (upload scan → preview glyphs → download font) is a
-  reasonable v2.
-
-## Credit
-
-Neural curve fitting approach and the K-point compression idea are from
-[`AM111_Final`](https://github.com/tuechile/AM111_Final), a final project
-for Harvard APMTH 111 (Introduction to Scientific Computing).
