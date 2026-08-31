@@ -1,10 +1,16 @@
 #!/usr/bin/env python
 """
-Train a NeuralBasisCurve for every glyph image in a directory.
+Train a cubic B-spline curve for every glyph image in a directory.
+
+Benchmarked against a learned neural basis on a self-intersecting stroke
+(see pipeline/curve_model.py's docstring): the B-spline fit was 1-3 orders
+of magnitude more accurate and traced the self-intersection correctly,
+where the neural basis cut a shortcut across it. Use --degree to change
+the spline degree (default cubic); --k must be > --degree.
 
 Usage:
     python scripts/03_train_glyphs.py --glyphs-dir data/glyphs --out-dir models \
-        --k 60 --epochs 3000
+        --k 60 --epochs 2000
 """
 
 import argparse
@@ -17,7 +23,7 @@ from skimage.io import imread
 from skimage.util import img_as_float
 
 from pipeline.preprocess import image_to_curve
-from pipeline.curve_model import train_neural_basis, save_model
+from pipeline.curve_model import train_bspline, save_model
 
 
 def main():
@@ -25,8 +31,9 @@ def main():
     parser.add_argument("--glyphs-dir", default="data/glyphs")
     parser.add_argument("--out-dir", default="models")
     parser.add_argument("--k", type=int, default=60, help="control points per glyph")
-    parser.add_argument("--epochs", type=int, default=3000)
-    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--degree", type=int, default=3, help="B-spline degree (default cubic)")
+    parser.add_argument("--epochs", type=int, default=2000)
+    parser.add_argument("--lr", type=float, default=1e-2)
     args = parser.parse_args()
 
     glyphs_dir = Path(args.glyphs_dir)
@@ -49,8 +56,8 @@ def main():
             print(f"  skipped: {e}")
             continue
 
-        model, mse = train_neural_basis(
-            s, coords, k=args.k, num_epochs=args.epochs, lr=args.lr, verbose=False,
+        model, mse = train_bspline(
+            s, coords, k=args.k, degree=args.degree, num_epochs=args.epochs, lr=args.lr, verbose=False,
         )
         out_path = out_dir / f"{char}.pt"
         save_model(model, out_path)

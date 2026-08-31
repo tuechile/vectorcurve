@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="210mm" height="180mm" viewBox="0 0 210 180">
+<rect width="210" height="180" fill="white"/>
+<rect x="15" y="15" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="17" y="43" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">a</text>
+<rect x="45" y="15" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="47" y="43" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">b</text>
+<rect x="75" y="15" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="77" y="43" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">c</text>
+<rect x="105" y="15" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="107" y="43" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">d</text>
+<rect x="135" y="15" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="137" y="43" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">e</text>
+<rect x="165" y="15" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="167" y="43" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">f</text>
+<rect x="15" y="45" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="17" y="73" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">g</text>
+<rect x="45" y="45" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="47" y="73" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">h</text>
+<rect x="75" y="45" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="77" y="73" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">i</text>
+<rect x="105" y="45" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="107" y="73" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">j</text>
+<rect x="135" y="45" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="137" y="73" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">k</text>
+<rect x="165" y="45" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="167" y="73" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">l</text>
+<rect x="15" y="75" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="17" y="103" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">m</text>
+<rect x="45" y="75" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="47" y="103" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">n</text>
+<rect x="75" y="75" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="77" y="103" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">o</text>
+<rect x="105" y="75" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="107" y="103" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">p</text>
+<rect x="135" y="75" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="137" y="103" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">q</text>
+<rect x="165" y="75" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="167" y="103" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">r</text>
+<rect x="15" y="105" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="17" y="133" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">s</text>
+<rect x="45" y="105" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="47" y="133" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">t</text>
+<rect x="75" y="105" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="77" y="133" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">u</text>
+<rect x="105" y="105" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="107" y="133" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">v</text>
+<rect x="135" y="105" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="137" y="133" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">w</text>
+<rect x="165" y="105" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="167" y="133" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">x</text>
+<rect x="15" y="135" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="17" y="163" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">y</text>
+<rect x="45" y="135" width="30" height="30" fill="none" stroke="black" stroke-width="0.2"/>
+<text x="47" y="163" font-family="Georgia, serif" font-size="18.0" fill="#dddddd">z</text>
+</svg>

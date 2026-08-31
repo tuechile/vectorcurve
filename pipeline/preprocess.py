@@ -25,6 +25,30 @@ def load_and_skeletonize(img_gray):
     return skeletonize(binary)
 
 
+def _largest_connected_component(adj):
+    """adj: adjacency list (index -> list of neighbor indices). Returns the
+    vertex indices of the largest connected component, via BFS."""
+    n = len(adj)
+    visited = [False] * n
+    best = []
+    for seed in range(n):
+        if visited[seed]:
+            continue
+        visited[seed] = True
+        component = [seed]
+        queue = [seed]
+        while queue:
+            v = queue.pop()
+            for u in adj[v]:
+                if not visited[u]:
+                    visited[u] = True
+                    component.append(u)
+                    queue.append(u)
+        if len(component) > len(best):
+            best = component
+    return best
+
+
 def extract_ordered_curve_from_skeleton(skeleton):
     """
     skeleton: boolean array, True at stroke pixels.
@@ -32,6 +56,12 @@ def extract_ordered_curve_from_skeleton(skeleton):
     Builds an 8-connected pixel graph and extracts an Eulerian trail via
     Hierholzer's algorithm, giving one continuous ordered walk over the
     stroke (revisiting junction pixels as needed for self-intersections).
+
+    If the skeleton has multiple disconnected components (stray noise, or
+    a multi-stroke glyph like 'i'/'j' where the dot is separate from the
+    stem), only the largest component is traced - a single Eulerian trail
+    can't cross between disconnected pieces, so smaller components (e.g.
+    an 'i' dot) are silently dropped rather than traced instead of the stem.
 
     Returns coords_ordered: (M, 2) float array, normalized to [0,1]^2 with
     y flipped so it matches standard "y-up" curve orientation.
@@ -56,8 +86,9 @@ def extract_ordered_curve_from_skeleton(skeleton):
             if j is not None:
                 adj[i].append(j)
 
-    odd_vertices = [i for i in range(n) if len(adj[i]) % 2 == 1]
-    start = odd_vertices[0] if odd_vertices else 0
+    largest_component = _largest_connected_component(adj)
+    odd_vertices = [i for i in largest_component if len(adj[i]) % 2 == 1]
+    start = odd_vertices[0] if odd_vertices else largest_component[0]
 
     adj_copy = [nbrs.copy() for nbrs in adj]
     stack = [start]
@@ -77,11 +108,17 @@ def extract_ordered_curve_from_skeleton(skeleton):
 
     coords = coords_pix[trail]
 
+    # Normalize by one shared scale (not independently per axis) so a thin
+    # stroke's true proportions survive - independent min-max normalization
+    # stretches a narrow glyph's few-pixel skeletonization wobble across the
+    # full [0,1] range, turning sub-pixel noise into a large visual artifact
+    # (most visible on tall/thin strokes like 'i', 'j', 'l').
     x_min, y_min = coords.min(axis=0)
     x_max, y_max = coords.max(axis=0)
-    coords[:, 0] = (coords[:, 0] - x_min) / (x_max - x_min + 1e-8)
-    coords[:, 1] = (coords[:, 1] - y_min) / (y_max - y_min + 1e-8)
-    coords[:, 1] = 1.0 - coords[:, 1]  # flip y: image row 0 is top, curves want y-up
+    span = max(x_max - x_min, y_max - y_min, 1e-8)
+    coords[:, 0] = (coords[:, 0] - x_min) / span
+    coords[:, 1] = (coords[:, 1] - y_min) / span
+    coords[:, 1] = coords[:, 1].max() - coords[:, 1]  # flip y within its own extent (image row 0 is top, curves want y-up)
 
     return coords
 

@@ -1,12 +1,17 @@
 """
 Byproduct of the main pipeline, not the point of the project.
 
-Two trained NeuralBasisCurve models for the "same" glyph (e.g. your 'a'
-and a friend's 'a', or the same letter at two points in time) share an
+Two trained curve models for the "same" glyph (e.g. your 'a' and a
+friend's 'a', or the same letter at two points in time) share an
 identical architecture, so their weights can be linearly interpolated
-directly. Because both curves are continuous functions of the same
-arc-length parameter s, this produces a smooth in-between stroke rather
-than a naive pixel cross-fade.
+directly. For the pipeline's default BSplineCurve this is exact: since
+the B-spline basis doesn't depend on the control points, the interpolated
+model's output at any t is exactly the (1-alpha)/alpha blend of the two
+curves' outputs at t - not just an approximation. (NeuralBasisCurve, kept
+for comparison, doesn't have that property - its sin/tanh/softmax
+nonlinearities mean interpolated weights don't correspond to interpolated
+output, so the blend there is closer to a naive cross-fade despite
+operating on weights rather than pixels.)
 """
 
 import copy
@@ -23,10 +28,20 @@ from .curve_model import eval_dense
 
 
 def interpolate_models(model_a, model_b, alpha):
+    if type(model_a) is not type(model_b):
+        raise ValueError(
+            f"Cannot morph curves of different types: "
+            f"{type(model_a).__name__} vs {type(model_b).__name__}."
+        )
     if model_a.k != model_b.k:
         raise ValueError(
             f"Cannot morph curves with different K (control point counts): "
             f"{model_a.k} vs {model_b.k}. Retrain both with the same K."
+        )
+    if getattr(model_a, "degree", None) != getattr(model_b, "degree", None):
+        raise ValueError(
+            f"Cannot morph B-splines with different degree: "
+            f"{model_a.degree} vs {model_b.degree}. Retrain both with the same --degree."
         )
     model_out = copy.deepcopy(model_a)
     sd_a, sd_b = model_a.state_dict(), model_b.state_dict()
