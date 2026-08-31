@@ -8,6 +8,8 @@ ordered walk over the stroke -> normalize and parameterize by arc length.
 Adapted from the AM111 final project (github.com/tuechile/AM111_Final).
 """
 
+from collections import deque
+
 import numpy as np
 from skimage.filters import threshold_otsu
 from skimage.morphology import skeletonize
@@ -49,6 +51,30 @@ def _largest_connected_component(adj):
     return best
 
 
+def _bfs_shortest_path(adj, start, end):
+    """Shortest path (list of vertex indices, start..end inclusive) over the
+    real pixel-adjacency graph. Used to patch phantom Hierholzer jumps -
+    see extract_ordered_curve_from_skeleton."""
+    if start == end:
+        return [start]
+    parent = {start: None}
+    queue = deque([start])
+    while queue:
+        v = queue.popleft()
+        for u in adj[v]:
+            if u not in parent:
+                parent[u] = v
+                if u == end:
+                    path = [end]
+                    while path[-1] is not None:
+                        path.append(parent[path[-1]])
+                    path.pop()  # drop the trailing None
+                    path.reverse()
+                    return path
+                queue.append(u)
+    raise ValueError("no path found - start and end should be in the same connected component")
+
+
 def extract_ordered_curve_from_skeleton(skeleton):
     """
     skeleton: boolean array, True at stroke pixels.
@@ -56,6 +82,18 @@ def extract_ordered_curve_from_skeleton(skeleton):
     Builds an 8-connected pixel graph and extracts an Eulerian trail via
     Hierholzer's algorithm, giving one continuous ordered walk over the
     stroke (revisiting junction pixels as needed for self-intersections).
+
+    Hierholzer's algorithm is only exact for a graph with 0 or 2 odd-degree
+    vertices (a closed loop, or a single open stroke). A real 3-or-more-way
+    junction - a crossbar meeting a stem, strokes crossing in cursive script
+    - gives the skeleton graph more than 2 odd-degree vertices, and the
+    stack-based algorithm below can then emit a "phantom" edge directly
+    between two sibling branches of a junction that aren't actually
+    adjacent (they only share the junction vertex). Left alone, that shows
+    up as a straight line cutting across the traced curve where there
+    should be a short backtrack through the junction instead. So after the
+    initial trail is built, any consecutive pair that isn't a real pixel
+    edge gets patched with the actual shortest path between them.
 
     If the skeleton has multiple disconnected components (stray noise, or
     a multi-stroke glyph like 'i'/'j' where the dot is separate from the
@@ -105,6 +143,14 @@ def extract_ordered_curve_from_skeleton(skeleton):
         else:
             trail.append(stack.pop())
     trail.reverse()
+
+    patched_trail = [trail[0]]
+    for a, b in zip(trail[:-1], trail[1:]):
+        if b in adj[a]:
+            patched_trail.append(b)
+        else:
+            patched_trail.extend(_bfs_shortest_path(adj, a, b)[1:])
+    trail = patched_trail
 
     coords = coords_pix[trail]
 
