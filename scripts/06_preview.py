@@ -5,7 +5,7 @@ can eyeball curve quality (or spot degenerate/collapsed glyphs) before
 spending a font build on them.
 
 Usage:
-    python scripts/06_preview_glyphs.py --models-dir models --out outputs/glyph_preview.png
+    python scripts/06_preview.py --models-dir models --out outputs/glyph_preview.png
 """
 
 import argparse

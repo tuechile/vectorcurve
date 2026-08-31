@@ -142,6 +142,30 @@ def _open_uniform_knots(n_ctrl, degree):
     return knots
 
 
+def _data_adaptive_knots(s, n_ctrl, degree):
+    """
+    Open (clamped) knot vector with internal knots placed at quantiles of
+    the training data's arc-length parameter s, instead of spaced uniformly
+    across [0,1]. A curve traced by an Eulerian trail that revisits
+    junctions (self-intersections, or a multi-stroke letter with sharp
+    branches) has data bunched up in some s-ranges and sparse elsewhere;
+    uniform knots then leave some control points with ~zero data under
+    their local basis support, so they're driven almost entirely by the
+    smoothness regularizer and can run far off from the actual curve (seen
+    on 'm': one such orphaned control point landed at x=-4, next to
+    neighbors around x=0.01). Quantile-spaced knots keep every control
+    point's basis support anchored to actual data.
+    """
+    p = degree
+    knots = np.zeros(n_ctrl + p + 1, dtype=np.float64)
+    knots[-(p + 1):] = 1.0
+    n_internal = n_ctrl - p - 1
+    if n_internal > 0:
+        quantile_positions = np.linspace(0.0, 1.0, n_internal + 2)[1:-1]
+        knots[p + 1:p + 1 + n_internal] = np.quantile(s, quantile_positions)
+    return knots
+
+
 def _bspline_basis_at_t(t, n_ctrl, degree, knots):
     """N_{i,degree}(t) for i=0..n_ctrl-1 via Cox-de Boor recursion."""
     p = degree
@@ -164,10 +188,12 @@ def _bspline_basis_at_t(t, n_ctrl, degree, knots):
     return basis
 
 
-def bspline_basis_matrix(t, n_ctrl, degree):
-    """t: (N,) in [0,1]. Returns (N, n_ctrl) with B[i, j] = N_{j,degree}(t_i)."""
+def bspline_basis_matrix(t, n_ctrl, degree, knots=None):
+    """t: (N,) in [0,1]. Returns (N, n_ctrl) with B[i, j] = N_{j,degree}(t_i).
+    knots defaults to a uniform knot vector if not given."""
     t = np.asarray(t, dtype=np.float64)
-    knots = _open_uniform_knots(n_ctrl, degree)
+    if knots is None:
+        knots = _open_uniform_knots(n_ctrl, degree)
     basis = np.stack([_bspline_basis_at_t(ti, n_ctrl, degree, knots) for ti in t])
     return basis.astype(np.float32)
 
@@ -175,15 +201,18 @@ def bspline_basis_matrix(t, n_ctrl, degree):
 class BSplineCurve(nn.Module):
     """C(t) = B(t) @ ctrl, with a fixed (non-learned) B-spline basis B(t)."""
 
-    def __init__(self, k, init_ctrl_points, degree=3):
+    def __init__(self, k, init_ctrl_points, degree=3, knots=None):
         super().__init__()
         self.k = k
         self.degree = degree
         self.ctrl = nn.Parameter(torch.tensor(init_ctrl_points, dtype=torch.float32))
+        if knots is None:
+            knots = _open_uniform_knots(k, degree)
+        self.register_buffer("knots", torch.tensor(knots, dtype=torch.float64))
 
     def forward(self, t):
         t_np = t.detach().cpu().numpy() if torch.is_tensor(t) else np.asarray(t)
-        basis = bspline_basis_matrix(t_np, self.k, self.degree)
+        basis = bspline_basis_matrix(t_np, self.k, self.degree, knots=self.knots.cpu().numpy())
         basis = torch.tensor(basis, dtype=torch.float32, device=self.ctrl.device)
         return basis @ self.ctrl
 
@@ -198,14 +227,15 @@ def train_bspline(s, coords, k, degree=3, num_epochs=2000, lr=1e-2, verbose=Fals
         raise ValueError(f"k={k} must be > degree={degree} for a B-spline fit.")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    basis_train = torch.tensor(bspline_basis_matrix(s, k, degree), dtype=torch.float32, device=device)
+    knots = _data_adaptive_knots(s, k, degree)
+    basis_train = torch.tensor(bspline_basis_matrix(s, k, degree, knots=knots), dtype=torch.float32, device=device)
     pts = torch.tensor(coords, dtype=torch.float32, device=device)
 
     n = len(coords)
     init_idx = np.linspace(0, n - 1, k, dtype=int)
     init_ctrl = coords[init_idx]
 
-    model = BSplineCurve(k, init_ctrl_points=init_ctrl, degree=degree).to(device)
+    model = BSplineCurve(k, init_ctrl_points=init_ctrl, degree=degree, knots=knots).to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
     criterion = nn.MSELoss()
 
